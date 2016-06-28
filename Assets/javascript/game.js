@@ -20,6 +20,7 @@ function playerObj(name, score, choice){
 //Tracking Variables
 var thisUser;
 var userName; 
+var clickImg;
 
 var p1Assigned;
 var p2Assigned;
@@ -36,51 +37,39 @@ function assignPlayer(player){
     db.ref(player).set(dbPlayer);
     $("#" + player).text(userName);
     thisUser = player;
+    clickImg = ".img-" + thisUser;
 };
 
 function win(player, scoreVar, div){
     scoreVar++;
-    db.ref(player).update({wins: scoreVar});
+    db.ref(player).update({score: scoreVar});
     db.ref("player1").update({choice: ""});
     db.ref("player1").update({choice: ""});
     // win animation
 };
 
-//Determines if players have been assigned.
-db.ref("player1").on("value", function(snapshot){
-    p1Assigned = snapshot.exists();
-});
-
-db.ref("player2").on("value", function(snapshot){
-    p2Assigned = snapshot.exists();
-});
-
-
-//Listens for user R/P/S choices
-db.ref("player1").on("value", function(snapshot){
-    p1Choice = snapshot.val().player1.choice;
-});
-
-db.ref("player2").on("value", function(snapshot){
-    p2Choice = snapshot.val().player2.choice;
-});
-
-//Sets proper player names and the score onscreen.
 db.ref().on("value", function(snapshot){
 
+    //These test if player1 and player2 have been asigned.
+    p1Assigned = snapshot.val().player1;
+    p2Assigned = snapshot.val().player2;
+
+    //Sets proper player names and the score onscreen.
     if (p1Assigned){
         var p1Name = snapshot.val().player1.name;
         p1Score = snapshot.val().player1.score;
         $("#player1").text(p1Name)
     };
-
     if (p2Assigned){
         var p2Name = snapshot.val().player2.name;
         p2Score = snapshot.val().player2.score;
         $("#player2").text(p2Name)
     };
-
     if (p1Assigned && p2Assigned){$("#scoreDisplay").text(p1Score + " - " + p2Score)}
+
+    //Listens for user R/P/S choices
+    p1Choice = snapshot.val().player1.choice;
+    p2Choice = snapshot.val().player2.choice;
 })
 
 // Adds a user, then replaces the input box on that user's screen with a score box. 
@@ -115,34 +104,36 @@ $(".btn").on("click", function(){
     if (!p1Assigned){assignPlayer("player1")}
     else if (!p2Assigned){assignPlayer("player2")}
     else {
-    //Unavailable message
-    console.log("Seat's taken")}
+        //Unavailable message
+        console.log("Seat's taken")
+    }
 
     return false;
 });
 
 //Detects R/P/S selection, limiting selection to only the user's side
 // 
-$(".img-" + thisUser).on("click", function(){
+$(clickImg).on("click", function(){
     var userChoice = $(this).attr("id");
-    db.ref(thisUser).update({choice: userChoice})
+    console.log(userChoice);
+    db.ref(thisUser).update({choice: userChoice});
 });
 
-if (thisUser === "player1" && p1Choice && p2Choice){
-    if (p1Choice === p2Choice){
-        //tie animation
-    }
-    else if (p1Choice === "rock" && p2Choice === "scissors"){
-        win("player1", p1Score);
-    }
-     else if (p1Choice === "paper" && p2Choice === "rock"){
-        win("player1", p1Score);
-    }
-     else if (p1Choice === "scissors" && p2Choice === "paper"){
-        win("player1", p1Score);
-    }
-    else {win("player2", p2Score)};
-}
+// if (thisUser === "player1" && p1Choice && p2Choice){
+//     if (p1Choice === p2Choice){
+//         //tie animation 
+//     }
+//     else if (p1Choice === "rock" && p2Choice === "scissors"){
+//         win("player1", p1Score);
+//     }
+//      else if (p1Choice === "paper" && p2Choice === "rock"){
+//         win("player1", p1Score);
+//     }
+//      else if (p1Choice === "scissors" && p2Choice === "paper"){
+//         win("player1", p1Score);
+//     }
+//     else {win("player2", p2Score)};
+// }
 
 
 
