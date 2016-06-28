@@ -36,20 +36,12 @@ function playerObj(name, wins, choice){
     this.choice = choice
 }
 
+//Tracking Variables
 var thisUser;
 var userName;
 
-//Determines if player 1 and/or player 2 are assigned in the database.  Returns a boolean.  Argument should be either "player1" or "player2".
-function whichPlayer(player){
-    var output;
-    db.ref(player).once("value")
-        .then(function(snapshot){
-            output = snapshot.exists();
-            console.log(player + " exists: " + output);
-        });
-    console.log("output: " + output);
-    return output;
-};
+var p1Assigned;
+var p2Assigned;
 
 //Adds players to the database and to the screen.  Argument should be either "player1" or "player2".
 function assignPlayer(player){
@@ -57,8 +49,30 @@ function assignPlayer(player){
     thisUser = player;
     db.ref(player).set(dbPlayer);
     $("#" + player).text(userName);
-    console.log(player + ": " + dbPlayer);
+    thisUser = player;
 }
+
+//Determines if players have been assigned, and sets proper player names onscreen.
+db.ref("player1").on("value", function(snapshot){
+    p1Assigned = snapshot.exists();
+});
+
+db.ref("player2").on("value", function(snapshot){
+    p2Assigned = snapshot.exists();
+});
+
+db.ref().on("value", function(snapshot){
+    
+    if(p1Assigned){
+        var p1Name = snapshot.val().player1.name;
+        $("#player1").text(p1Name)
+    };
+
+    if(p2Assigned){
+        var p2Name = snapshot.val().player2.name;
+        $("#player2").text(p2Name)
+    };
+})
 
 //Adds a user, then replaces the input box on that user's screen with a score box. 
 $(".btn").on("click", function(){
@@ -86,11 +100,9 @@ $(".btn").on("click", function(){
     $("#scoreBox").append(scoreDisplay);
 
     //Determine which player the current user should play as.
-    var p1Assigned = whichPlayer("player1");
-    var p2Assigned = whichPlayer("player2");
+
     console.log("p1Assigned: " + p1Assigned);
     console.log("p2Assigned: " + p2Assigned);
-
 
     if (!p1Assigned){assignPlayer("player1")} 
     else if (!p2Assigned){assignPlayer("player2")}
